@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make a Booking</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #00aaff, #00ffaa);
+            color: black;
+            max-width: 400px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .navbar button {
+            background: #007acc;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+
+        .navbar button:hover {
+            transform: translateY(-2px);
+        }
+
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            font-size: 16px;
+            color: black;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <button onclick="window.location.href='booking.html'">Booking</button>
+        <button onclick="window.location.href='login.html'">Login</button>
+        <button onclick="window.location.href='register.html'">Register</button>
+        <button onclick="window.location.href='viewbooking.html'">View Bookings</button>
+    </div>
+
+    <h2>Make a Booking</h2>
+    <form id="bookingForm">
+        <select id="facilityDescription" required>
+            <option value="">Select Facility</option>
+            <option value="A">Facility A</option>
+            <option value="B">Facility B</option>
+            <option value="C">Facility C</option>
+            <option value="D">Facility D</option>
+        </select>
+        <input type="datetime-local" id="bookingDateFrom" required>
+        <input type="datetime-local" id="bookingDateTo" required>
+        <input type="text" id="bookedBy" placeholder="Booked By" required>
+        <select id="bookingStatus" required>
+            <option value="">Select Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        <button type="submit">Make Booking</button>
+    </form>
+    <p><a href="viewbooking.html" style="color: black;">View Bookings</a></p>
+
+    <script>
+        document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const booking = {
+                facilityDescription: document.getElementById('facilityDescription').value,
+                bookingDateFrom: document.getElementById('bookingDateFrom').value,
+                bookingDateTo: document.getElementById('bookingDateTo').value,
+                bookedBy: document.getElementById('bookedBy').value,
+                bookingStatus: document.getElementById('bookingStatus').value
+            };
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await axios.post('http://localhost:5193/api/Bookings/Post', booking, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                alert('Booking successful!');
+                window.location.href = 'viewbooking.html';
+            } catch (error) {
+                alert('Booking failed. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

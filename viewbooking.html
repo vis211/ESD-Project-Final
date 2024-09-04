@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Bookings</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 800px;
+            background: linear-gradient(135deg, #00aaff, #00ffaa);
+            color: black;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .navbar button {
+            background: #007acc;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+
+        .navbar button:hover {
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            color: black;
+        }
+
+        th {
+            background-color: #007acc;
+            color: white;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            padding: 8px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .report-buttons {
+            margin-bottom: 20px;
+        }
+
+        .report-buttons button {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <button onclick="window.location.href='booking.html'">Booking</button>
+        <button onclick="window.location.href='login.html'">Login</button>
+        <button onclick="window.location.href='register.html'">Register</button>
+        <button onclick="window.location.href='viewbooking.html'">View Bookings</button>
+    </div>
+
+    <h2>Bookings</h2>
+
+    <div class="report-buttons">
+        <button onclick="getBookingsByDateRange()">Bookings by Date Range</button>
+        <button onclick="getBookingsByFacility()">Bookings by Facility</button>
+        <button onclick="getBookingsByStatus()">Bookings by Status</button>
+        <button onclick="getBookingsSummary()">Bookings Summary</button>
+    </div>
+
+    <table id="bookingsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Facility</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Booked By</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <p><a href="booking.html" style="color: black;">Make a New Booking</a></p>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        async function fetchBookings() {
+            try {
+                const response = await axios.get('http://localhost:5193/api/Bookings/GetAll', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const bookings = response.data;
+                displayBookings(bookings);
+            } catch (error) {
+                alert('Failed to fetch bookings.');
+            }
+        }
+
+        async function updateBooking(id) {
+            const newStatus = prompt('Enter new status (Pending, Confirmed, Cancelled):');
+            if (newStatus) {
+                try {
+                    await axios.put(`http://localhost:5193/api/Bookings/Put?id=${id}`, 
+                        { bookingStatus: newStatus },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    alert('Booking updated successfully!');
+                    fetchBookings();
+                } catch (error) {
+                    alert('Failed to update booking.');
+                }
+            }
+        }
+
+        async function deleteBooking(id) {
+            if (confirm('Are you sure you want to delete this booking?')) {
+                try {
+                    await axios.delete(`http://localhost:5193/api/Bookings/Delete?id=${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    alert('Booking deleted successfully!');
+                    fetchBookings();
+                } catch (error) {
+                    alert('Failed to delete booking.');
+                }
+            }
+        }
+
+        async function getBookingsByDateRange() {
+            const startDate = prompt('Enter start date (YYYY-MM-DD):');
+            const endDate = prompt('Enter end date (YYYY-MM-DD):');
+            if (startDate && endDate) {
+                try {
+                    const response = await axios.get(`http://localhost:5193/api/BookingReports/GetBookingsByDateRange?startDate=${startDate}&endDate=${endDate}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    displayBookings(response.data);
+                } catch (error) {
+                    alert('Failed to fetch bookings by date range.');
+                }
+            }
+        }
+
+        async function getBookingsByFacility() {
+            const facility = prompt('Enter facility description:');
+            if (facility) {
+                try {
+                    const response = await axios.get(`http://localhost:5193/api/BookingReports/GetBookingsByFacility?facilityDescription=${facility}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    displayBookings(response.data);
+                } catch (error) {
+                    alert('Failed to fetch bookings by facility.');
+                }
+            }
+        }
+
+        async function getBookingsByStatus() {
+            const status = prompt('Enter booking status:');
+            if (status) {
+                try {
+                    const response = await axios.get(`http://localhost:5193/api/BookingReports/GetBookingsByStatus?status=${status}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    displayBookings(response.data);
+                } catch (error) {
+                    alert('Failed to fetch bookings by status.');
+                }
+            }
+        }
+
+        async function getBookingsSummary() {
+            try {
+                const response = await axios.get('http://localhost:5193/api/BookingReports/GetBookingsSummary', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                displaySummary(response.data);
+            } catch (error) {
+                alert('Failed to fetch bookings summary.');
+            }
+        }
+
+        function displayBookings(bookings) {
+            const tbody = document.querySelector('#bookingsTable tbody');
+            tbody.innerHTML = '';
+            bookings.forEach(booking => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${booking.bookingId}</td>
+                        <td>${booking.facilityDescription}</td>
+                        <td>${new Date(booking.bookingDateFrom).toLocaleString()}</td>
+                        <td>${new Date(booking.bookingDateTo).toLocaleString()}</td>
+                        <td>${booking.bookedBy}</td>
+                        <td>${booking.bookingStatus}</td>
+                        <td>
+                            <button onclick="updateBooking(${booking.bookingId})">Update</button>
+                            <button onclick="deleteBooking(${booking.bookingId})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function displaySummary(summary) {
+            const tbody = document.querySelector('#bookingsTable tbody');
+            tbody.innerHTML = '';
+            summary.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td colspan="2">${item.facility}</td>
+                        <td colspan="5">
+                            Total: ${item.totalBookings}, 
+                            Pending: ${item.pendingBookings}, 
+                            Confirmed: ${item.confirmedBookings}, 
+                            Cancelled: ${item.cancelledBookings}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        fetchBookings();
+    </script>
+</body>
+</html>

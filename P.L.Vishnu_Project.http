@@ -1,0 +1,6 @@
+@P.L.Vishnu_Project_HostAddress = http://localhost:5193
+
+GET {{P.L.Vishnu_Project_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
